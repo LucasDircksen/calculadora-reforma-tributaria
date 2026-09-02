@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Calculadora de transição tributária para comparação de cenários.">
+  <title>Tributo Claro — Calculadora de Transição Tributária</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i></span>
+      <span class="brand-name">tributo<span>·</span>claro</span>
+    </div>
+    <span class="header-tag">Simulação informativa</span>
+  </header>
+
+  <main class="page">
+    <section class="intro">
+      <div class="eyebrow">CALCULADORA DE TRANSIÇÃO TRIBUTÁRIA</div>
+      <h1>Compare a carga antes de tomar a próxima decisão.</h1>
+      <p class="lead">Informe um valor e as alíquotas do cenário atual e futuro. O resultado aparece na hora, com uma comparação simples e transparente.</p>
+
+      <div class="steps">
+        <div class="step active"><b>01</b><span>Escolha</span></div>
+        <div class="step"><b>02</b><span>Informe</span></div>
+        <div class="step"><b>03</b><span>Compare</span></div>
+      </div>
+
+      <div class="notice">
+        <strong>Como funciona</strong>
+        <span>Esta ferramenta faz uma simulação matemática. Ela não substitui apuração fiscal, escrituração ou orientação tributária.</span>
+      </div>
+
+      <div class="year-box">
+        <label for="year">Ano de referência</label>
+        <select id="year">
+          <option value="2026">2026 — alíquota-teste</option>
+          <option value="2027">2027 — início da transição</option>
+          <option value="2028">2028 — transição</option>
+          <option value="2029">2029 — 10% IBS / 90% ICMS-ISS</option>
+          <option value="2030">2030 — 20% IBS / 80% ICMS-ISS</option>
+          <option value="2031">2031 — 30% IBS / 70% ICMS-ISS</option>
+          <option value="2032">2032 — 40% IBS / 60% ICMS-ISS</option>
+          <option value="2033">2033 — novo modelo integral</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="calculator" aria-label="Calculadora">
+      <div class="panel">
+        <div class="panel-title">
+          <div><span class="label-number">02</span><h2>Informe os valores</h2></div>
+          <button id="resetBtn" class="text-button" type="button">Limpar</button>
+        </div>
+
+        <div class="field">
+          <label for="base">Valor da operação</label>
+          <div class="input-wrap money"><span>R$</span><input id="base" type="number" min="0" step="0.01" value="100000" inputmode="decimal"></div>
+          <small>Base usada apenas para demonstrar o impacto financeiro.</small>
+        </div>
+
+        <div class="comparison-grid">
+          <div class="scenario old">
+            <div class="scenario-head"><span>ATUAL</span><em>Antes</em></div>
+            <label for="oldRate">Carga tributária (%)</label>
+            <div class="input-wrap"><input id="oldRate" type="number" min="0" step="0.01" value="18" inputmode="decimal"><span>%</span></div>
+            <small>Informe a carga efetiva que você deseja comparar.</small>
+          </div>
+
+          <div class="scenario new">
+            <div class="scenario-head"><span>NOVO</span><em>Depois</em></div>
+            <label for="newRate">Carga tributária (%)</label>
+            <div class="input-wrap"><input id="newRate" type="number" min="0" step="0.01" value="17" inputmode="decimal"><span>%</span></div>
+            <small>Use a alíquota/carga do cenário que está sendo estudado.</small>
+          </div>
+        </div>
+
+        <details class="advanced">
+          <summary>Usar componentes do novo modelo</summary>
+          <div class="advanced-grid">
+            <div class="field">
+              <label for="cbs">CBS (%)</label>
+              <div class="input-wrap"><input id="cbs" type="number" min="0" step="0.01" value="0.9"><span>%</span></div>
+            </div>
+            <div class="field">
+              <label for="ibs">IBS (%)</label>
+              <div class="input-wrap"><input id="ibs" type="number" min="0" step="0.01" value="0.1"><span>%</span></div>
+            </div>
+            <button id="useComponents" type="button" class="secondary-button">Somar CBS + IBS como cenário novo</button>
+          </div>
+        </details>
+
+        <div class="result">
+          <div class="result-top">
+            <span class="label-number">03</span>
+            <h2>Compare</h2>
+          </div>
+
+          <div class="hero-result">
+            <div>
+              <span class="result-kicker" id="resultKicker">Diferença estimada</span>
+              <strong id="difference">R$ 1.000,00</strong>
+              <p id="differenceText">O cenário novo representa uma redução estimada.</p>
+            </div>
+            <div class="badge down" id="badge">−1,00 p.p.</div>
+          </div>
+
+          <div class="bar">
+            <div class="bar-row"><span>Atual</span><strong id="oldValue">R$ 18.000,00</strong></div>
+            <div class="track"><span id="oldFill"></span></div>
+            <div class="bar-row"><span>Novo</span><strong id="newValue">R$ 17.000,00</strong></div>
+            <div class="track new-track"><span id="newFill"></span></div>
+          </div>
+
+          <div class="summary-grid">
+            <div><span>Alíquota atual</span><strong id="oldRateView">18,00%</strong></div>
+            <div><span>Alíquota nova</span><strong id="newRateView">17,00%</strong></div>
+            <div><span>Variação</span><strong id="variation">−5,56%</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="side-note">
+        <div class="side-title">Premissas</div>
+        <p id="yearNote">2026: referência de teste informada para CBS e IBS.</p>
+        <ul>
+          <li>O cálculo é linear sobre o valor informado.</li>
+          <li>Não modela créditos, regimes específicos, benefícios fiscais ou local de destino.</li>
+          <li>Não calcula Imposto Seletivo por produto.</li>
+          <li>Confira a legislação vigente antes de usar o resultado para decisões.</li>
+        </ul>
+        <div class="sources">
+          <span>Fontes de referência</span>
+          <a href="https://www.gov.br/receitafederal/pt-br/acesso-a-informacao/acoes-e-programas/programas-e-atividades/reforma-tributaria-do-consumo/entenda" target="_blank" rel="noopener">Receita Federal</a>
+          <a href="https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm" target="_blank" rel="noopener">LC 214/2025</a>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <footer>
+    <span>Tributo Claro · ferramenta de simulação</span>
+    <span>Não constitui apuração fiscal.</span>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

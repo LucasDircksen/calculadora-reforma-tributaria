@@ -1,0 +1,8 @@
+# Vercel / Node
+node_modules/
+.vercel/
+.env
+.env.*
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
