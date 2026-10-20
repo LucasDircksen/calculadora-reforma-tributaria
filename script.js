@@ -23,6 +23,73 @@ function number(id) {
   return Number.isFinite(value) && value >= 0 ? value : 0;
 }
 
+function firstByLocal(root, name) {
+  if (!root) return null;
+  return Array.from(root.getElementsByTagName("*")).find((el) => el.localName === name) || null;
+}
+
+function childText(parent, name) {
+  if (!parent) return "";
+  const el = Array.from(parent.children).find((child) => child.localName === name);
+  return el ? (el.textContent || "").trim() : "";
+}
+
+function parseMoney(text) {
+  if (!text) return 0;
+  let t = text.trim();
+  if (t.includes(",")) t = t.replace(/\./g, "").replace(",", ".");
+  const n = Number(t);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function extractNfe(data) {
+  const doc = new DOMParser().parseFromString(data, "text/xml");
+  if (doc.getElementsByTagName("parsererror").length) {
+    throw new Error("O arquivo selecionado não é um XML válido.");
+  }
+
+  const total = firstByLocal(doc, "total");
+  const icmsTot = firstByLocal(total, "ICMSTot");
+  const issTot = firstByLocal(total, "ISSQNtot");
+
+  const base = parseMoney(childText(icmsTot, "vNF")) || parseMoney(childText(total, "vNF"));
+  if (base <= 0) throw new Error("Não encontrei o valor total (vNF) neste XML.");
+
+  const breakdown = {
+    ICMS: parseMoney(childText(icmsTot, "vICMS")),
+    PIS: parseMoney(childText(icmsTot, "vPIS")) + parseMoney(childText(issTot, "vPIS")),
+    COFINS: parseMoney(childText(icmsTot, "vCOFINS")) + parseMoney(childText(issTot, "vCOFINS")),
+    ISS: parseMoney(childText(issTot, "vISS")),
+    IPI: parseMoney(childText(icmsTot, "vIPI"))
+  };
+
+  let taxes = Object.values(breakdown).reduce((sum, value) => sum + value, 0);
+  if (taxes <= 0) taxes = parseMoney(childText(icmsTot, "vTotTrib"));
+
+  return { base, taxes, breakdown };
+}
+
+function setXmlStatus(message, kind) {
+  const el = $("xmlStatus");
+  el.textContent = message;
+  el.className = kind ? `xml-status ${kind}` : "xml-status";
+}
+
+const XML_HINT = "Selecione o XML de uma NF-e ou NFC-e para preencher o valor total e a carga atual automaticamente.";
+
+function applyImport({ base, taxes, breakdown }) {
+  $("base").value = base.toFixed(2);
+  const rate = base > 0 ? (taxes / base) * 100 : 0;
+  $("oldRate").value = rate.toFixed(2);
+  calculate();
+
+  const parts = Object.entries(breakdown)
+    .filter(([, value]) => value > 0)
+    .map(([name, value]) => `${name} ${money.format(value)}`);
+  const detail = parts.length ? parts.join(" + ") : "impostos estimados (vTotTrib)";
+  setXmlStatus(`XML importado: base ${money.format(base)} e carga atual de ${percent(rate)} (${detail}).`, "ok");
+}
+
 function calculate() {
   const base = number("base");
   const oldRate = number("oldRate");
@@ -67,6 +134,24 @@ function updateYear() {
 
 $("year").addEventListener("change", updateYear);
 
+$("xmlFile").addEventListener("change", (event) => {
+  const file = event.target.files[0];
+  if (!file) {
+    setXmlStatus(XML_HINT);
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      applyImport(extractNfe(String(reader.result)));
+    } catch (error) {
+      setXmlStatus(error.message, "error");
+    }
+  };
+  reader.onerror = () => setXmlStatus("Não foi possível ler o arquivo.", "error");
+  reader.readAsText(file);
+});
+
 $("useComponents").addEventListener("click", () => {
   const total = number("cbs") + number("ibs");
   $("newRate").value = total.toFixed(2);
@@ -79,6 +164,8 @@ $("resetBtn").addEventListener("click", () => {
   $("newRate").value = "17";
   $("cbs").value = "0.9";
   $("ibs").value = "0.1";
+  $("xmlFile").value = "";
+  setXmlStatus(XML_HINT);
   calculate();
 });
 

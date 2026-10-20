@@ -74,6 +74,20 @@ h2 { font-size:30px; color:var(--petrol-dark); }
 .input-wrap.money span { border-right:1px solid var(--line); padding-right:12px; }
 .input-wrap.money input { padding-left:12px; }
 
+.xml-field input[type="file"] {
+  width:100%; border:1px dashed var(--line); background:var(--paper); color:var(--muted);
+  border-radius:2px; padding:13px 14px; cursor:pointer; font-size:12px;
+}
+.xml-field input[type="file"]:hover { border-color:var(--petrol); }
+.xml-field input[type="file"]::file-selector-button {
+  border:1px solid var(--petrol); background:transparent; color:var(--petrol);
+  padding:8px 12px; margin-right:12px; border-radius:2px; cursor:pointer; font:700 11px inherit;
+}
+.xml-field input[type="file"]::file-selector-button:hover { background:var(--petrol); color:#fff; }
+.xml-status { display:block; margin-top:8px; color:var(--muted); font-size:11px; line-height:1.45; }
+.xml-status.ok { color:var(--sage); }
+.xml-status.error { color:var(--coral); }
+
 .comparison-grid { display:grid; grid-template-columns:1fr 1fr; gap:15px; }
 .scenario { padding:20px; border-top:3px solid var(--line); background:#faf8f2; }
 .scenario.new { border-color:var(--coral); }
